@@ -1,3 +1,13 @@
+const ffmpegPath = '/usr/bin/ffmpeg';
+const ffprobePath = '/usr/bin/ffprobe';
+
+process.env.FFMPEG_PATH = ffmpegPath;
+process.env.FFPROBE_PATH = ffprobePath;
+
+const ffmpeg = require('fluent-ffmpeg');
+ffmpeg.setFfmpegPath(ffmpegPath);
+ffmpeg.setFfprobePath(ffprobePath);
+
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
