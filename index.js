@@ -38,6 +38,18 @@ async function checkFFmpeg() {
   }
 }
 
+async function checkNodeJs() {
+  try {
+    const { stdout } = await execPromise('which node');
+    const nodePath = stdout.trim();
+    console.log('Node.js found at:', nodePath);
+    return true;
+  } catch (error) {
+    console.warn('Node.js not found in PATH. Some YouTube features may not work optimally.');
+    return false;
+  }
+}
+
 async function initializeYtDlp() {
   if (isInitialized) return;
 
@@ -45,6 +57,8 @@ async function initializeYtDlp() {
   if (!hasFFmpeg) {
     throw new Error('FFmpeg is required but not found in system PATH');
   }
+
+  await checkNodeJs();
 
   const binDir = path.join(__dirname, 'bin');
   if (!fs.existsSync(binDir)) {
@@ -57,7 +71,6 @@ async function initializeYtDlp() {
       await YTDlpWrap.downloadFromGithub(ytDlpPath);
       console.log('yt-dlp binary downloaded successfully');
       
-      // Make the binary executable on Linux
       await execPromise(`chmod +x ${ytDlpPath}`);
       console.log('yt-dlp binary made executable');
     } catch (error) {
@@ -102,12 +115,29 @@ app.post('/api/extract-clip', async (req, res) => {
   try {
     console.log(`Getting stream URLs...`);
 
-    const videoUrl = await ytDlpWrap.execPromise([
+    // Enhanced yt-dlp options to bypass bot detection
+    const ytDlpOptions = [
       youtubeUrl,
       '-f', 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
       '--get-url',
-      '--no-playlist'
-    ]);
+      '--no-playlist',
+      // Use cookies from browser (Firefox example, change to chrome/edge as needed)
+      '--cookies-from-browser', 'firefox',
+      // Alternative: specify player client to avoid JS requirement
+      '--extractor-args', 'youtube:player_client=android,web',
+      // Add user agent to appear more like a real browser
+      '--user-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      // Add referer
+      '--referer', 'https://www.youtube.com/',
+      // Avoid rate limiting
+      '--sleep-requests', '1',
+      '--sleep-interval', '2',
+      // Additional headers
+      '--add-header', 'Accept-Language:en-US,en;q=0.9',
+      '--add-header', 'Accept:text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+    ];
+
+    const videoUrl = await ytDlpWrap.execPromise(ytDlpOptions);
 
     const urls = videoUrl.trim().split('\n');
     console.log(`Downloading clip segment from ${startTime}s to ${endTime}s (${duration}s duration)`);
@@ -116,11 +146,19 @@ app.post('/api/extract-clip', async (req, res) => {
       const cmd = ffmpeg();
 
       cmd.input(urls[0])
-         .inputOptions(['-ss', startTime.toString()]);
+         .inputOptions([
+           '-ss', startTime.toString(),
+           '-user_agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+           '-headers', 'Referer: https://www.youtube.com/'
+         ]);
 
       if (urls.length > 1) {
         cmd.input(urls[1])
-           .inputOptions(['-ss', startTime.toString()]);
+           .inputOptions([
+             '-ss', startTime.toString(),
+             '-user_agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+             '-headers', 'Referer: https://www.youtube.com/'
+           ]);
       }
 
       cmd.outputOptions([
