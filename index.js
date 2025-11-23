@@ -13,7 +13,7 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 
-const ytDlpPath = path.join(__dirname, 'bin', 'yt-dlp.exe');
+const ytDlpPath = path.join(__dirname, 'bin', 'yt-dlp');
 let ytDlpWrap;
 let isInitialized = false;
 let ffmpegPath = null;
@@ -21,10 +21,10 @@ let ffprobePath = null;
 
 async function checkFFmpeg() {
   try {
-    const { stdout } = await execPromise('where ffmpeg');
-    ffmpegPath = stdout.trim().split('\n')[0].replace(/\r/g, '').trim();
-    const { stdout: probeOut } = await execPromise('where ffprobe');
-    ffprobePath = probeOut.trim().split('\n')[0].replace(/\r/g, '').trim();
+    const { stdout } = await execPromise('which ffmpeg');
+    ffmpegPath = stdout.trim();
+    const { stdout: probeOut } = await execPromise('which ffprobe');
+    ffprobePath = probeOut.trim();
 
     ffmpeg.setFfmpegPath(ffmpegPath);
     ffmpeg.setFfprobePath(ffprobePath);
@@ -33,7 +33,7 @@ async function checkFFmpeg() {
     console.log('FFprobe found at:', ffprobePath);
     return true;
   } catch (error) {
-    console.error('FFmpeg not found in PATH. Please install FFmpeg from https://ffmpeg.org/download.html');
+    console.error('FFmpeg not found in PATH. Install with: sudo apt install ffmpeg (Ubuntu/Debian) or sudo yum install ffmpeg (RHEL/CentOS)');
     return false;
   }
 }
@@ -55,10 +55,19 @@ async function initializeYtDlp() {
     console.log('Downloading yt-dlp binary...');
     try {
       await YTDlpWrap.downloadFromGithub(ytDlpPath);
-      console.log('yt-dlp binary downloaded successfully');
+      // Make the binary executable on Linux
+      await execPromise(`chmod +x ${ytDlpPath}`);
+      console.log('yt-dlp binary downloaded and made executable');
     } catch (error) {
       console.error('Failed to download yt-dlp:', error);
       throw new Error('Failed to initialize yt-dlp');
+    }
+  } else {
+    // Ensure it's executable even if it already exists
+    try {
+      await execPromise(`chmod +x ${ytDlpPath}`);
+    } catch (error) {
+      console.warn('Could not set executable permissions:', error.message);
     }
   }
 
