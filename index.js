@@ -13,7 +13,7 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 
-const ytDlpPath = path.join(__dirname, 'bin', 'yt-dlp');
+const ytDlpPath = path.join(__dirname, 'bin', 'yt-dlp.exe');
 let ytDlpWrap;
 let isInitialized = false;
 let ffmpegPath = null;
@@ -21,10 +21,10 @@ let ffprobePath = null;
 
 async function checkFFmpeg() {
   try {
-    const { stdout } = await execPromise('which ffmpeg');
-    ffmpegPath = stdout.trim();
-    const { stdout: probeOut } = await execPromise('which ffprobe');
-    ffprobePath = probeOut.trim();
+    const { stdout } = await execPromise('where ffmpeg');
+    ffmpegPath = stdout.trim().split('\n')[0].replace(/\r/g, '').trim();
+    const { stdout: probeOut } = await execPromise('where ffprobe');
+    ffprobePath = probeOut.trim().split('\n')[0].replace(/\r/g, '').trim();
 
     ffmpeg.setFfmpegPath(ffmpegPath);
     ffmpeg.setFfprobePath(ffprobePath);
@@ -33,19 +33,7 @@ async function checkFFmpeg() {
     console.log('FFprobe found at:', ffprobePath);
     return true;
   } catch (error) {
-    console.error('FFmpeg not found in PATH. Install with: sudo apt-get install ffmpeg');
-    return false;
-  }
-}
-
-async function checkNodeJs() {
-  try {
-    const { stdout } = await execPromise('which node');
-    const nodePath = stdout.trim();
-    console.log('Node.js found at:', nodePath);
-    return true;
-  } catch (error) {
-    console.warn('Node.js not found in PATH. Some YouTube features may not work optimally.');
+    console.error('FFmpeg not found in PATH. Please install FFmpeg from https://ffmpeg.org/download.html');
     return false;
   }
 }
@@ -58,8 +46,6 @@ async function initializeYtDlp() {
     throw new Error('FFmpeg is required but not found in system PATH');
   }
 
-  await checkNodeJs();
-
   const binDir = path.join(__dirname, 'bin');
   if (!fs.existsSync(binDir)) {
     fs.mkdirSync(binDir, { recursive: true });
@@ -70,9 +56,6 @@ async function initializeYtDlp() {
     try {
       await YTDlpWrap.downloadFromGithub(ytDlpPath);
       console.log('yt-dlp binary downloaded successfully');
-      
-      await execPromise(`chmod +x ${ytDlpPath}`);
-      console.log('yt-dlp binary made executable');
     } catch (error) {
       console.error('Failed to download yt-dlp:', error);
       throw new Error('Failed to initialize yt-dlp');
@@ -115,29 +98,12 @@ app.post('/api/extract-clip', async (req, res) => {
   try {
     console.log(`Getting stream URLs...`);
 
-    // Enhanced yt-dlp options to bypass bot detection
-    const ytDlpOptions = [
+    const videoUrl = await ytDlpWrap.execPromise([
       youtubeUrl,
       '-f', 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
       '--get-url',
-      '--no-playlist',
-      // Use cookies from browser (Firefox example, change to chrome/edge as needed)
-      '--cookies-from-browser', 'firefox',
-      // Alternative: specify player client to avoid JS requirement
-      '--extractor-args', 'youtube:player_client=android,web',
-      // Add user agent to appear more like a real browser
-      '--user-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-      // Add referer
-      '--referer', 'https://www.youtube.com/',
-      // Avoid rate limiting
-      '--sleep-requests', '1',
-      '--sleep-interval', '2',
-      // Additional headers
-      '--add-header', 'Accept-Language:en-US,en;q=0.9',
-      '--add-header', 'Accept:text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
-    ];
-
-    const videoUrl = await ytDlpWrap.execPromise(ytDlpOptions);
+      '--no-playlist'
+    ]);
 
     const urls = videoUrl.trim().split('\n');
     console.log(`Downloading clip segment from ${startTime}s to ${endTime}s (${duration}s duration)`);
@@ -146,19 +112,11 @@ app.post('/api/extract-clip', async (req, res) => {
       const cmd = ffmpeg();
 
       cmd.input(urls[0])
-         .inputOptions([
-           '-ss', startTime.toString(),
-           '-user_agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-           '-headers', 'Referer: https://www.youtube.com/'
-         ]);
+         .inputOptions(['-ss', startTime.toString()]);
 
       if (urls.length > 1) {
         cmd.input(urls[1])
-           .inputOptions([
-             '-ss', startTime.toString(),
-             '-user_agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-             '-headers', 'Referer: https://www.youtube.com/'
-           ]);
+           .inputOptions(['-ss', startTime.toString()]);
       }
 
       cmd.outputOptions([
