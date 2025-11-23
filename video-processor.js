@@ -180,6 +180,12 @@ async function extractVideoClip(youtubeUrl, startTime, endTime) {
 
     const videoUrl = await ytDlpWrap.execPromise([
       normalizedUrl,
+      '--cookies', path.join(__dirname, 'cookies', 'cookies.txt'),
+      '--extractor-args', 'youtube:player_client=default',
+      '--user-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+      '-f', 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
+      '--get-url',
+      '--no-playlist',
       '-f', 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
       '--get-url',
       '--no-playlist'
