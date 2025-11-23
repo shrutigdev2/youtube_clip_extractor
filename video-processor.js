@@ -14,7 +14,7 @@ if (!fs.existsSync(tempDir)) {
   console.log('Temp directory created at:', tempDir);
 }
 
-const ytDlpPath = path.join(__dirname, 'bin', 'yt-dlp.exe');
+const ytDlpPath = path.join(__dirname, 'bin', 'yt-dlp');
 let ytDlpWrap;
 let isInitialized = false;
 let ffmpegPath = null;
@@ -55,15 +55,17 @@ async function initializeYtDlp() {
   }
 
   if (!fs.existsSync(ytDlpPath)) {
-    console.log('Downloading yt-dlp binary...');
-    try {
-      await YTDlpWrap.downloadFromGithub(ytDlpPath);
-      console.log('yt-dlp binary downloaded successfully');
-    } catch (error) {
-      console.error('Failed to download yt-dlp:', error);
-      throw new Error('Failed to initialize yt-dlp');
-    }
+  console.log('Downloading yt-dlp binary...');
+  try {
+    await YTDlpWrap.downloadFromGithub(ytDlpPath);
+    fs.chmodSync(ytDlpPath, 0o755); // Make executable
+    console.log('yt-dlp binary downloaded successfully');
+  } catch (error) {
+    console.error('Failed to download yt-dlp:', error);
+    throw new Error('Failed to initialize yt-dlp');
   }
+}
+
 
   ytDlpWrap = new YTDlpWrap(ytDlpPath);
   isInitialized = true;
