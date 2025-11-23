@@ -1,0 +1,273 @@
+{
+  "info": {
+    "name": "YouTube Clip Extractor API",
+    "description": "API for extracting clips from YouTube videos",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/health",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["health"]
+        },
+        "description": "Check if the server is running and view temp directory status"
+      },
+      "response": []
+    },
+    {
+      "name": "Extract Clip - Short (10 seconds)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"youtubeUrl\": \"https://www.youtube.com/watch?v=dQw4w9WgXcQ\",\n  \"startTime\": 10,\n  \"endTime\": 20\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/extract-clip",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "extract-clip"]
+        },
+        "description": "Extract a 10-second clip from a YouTube video"
+      },
+      "response": []
+    },
+    {
+      "name": "Extract Clip - Medium (30 seconds)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"youtubeUrl\": \"https://youtu.be/dQw4w9WgXcQ\",\n  \"startTime\": 0,\n  \"endTime\": 30\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/extract-clip",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "extract-clip"]
+        },
+        "description": "Extract a 30-second clip using youtu.be short URL format"
+      },
+      "response": []
+    },
+    {
+      "name": "Extract Clip - Long (1 minute)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"youtubeUrl\": \"https://www.youtube.com/watch?v=dQw4w9WgXcQ\",\n  \"startTime\": 60,\n  \"endTime\": 120\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/extract-clip",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "extract-clip"]
+        },
+        "description": "Extract a 1-minute clip from timestamp 1:00 to 2:00"
+      },
+      "response": []
+    },
+    {
+      "name": "Extract Clip - With Query Parameters",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"youtubeUrl\": \"https://www.youtube.com/watch?v=dQw4w9WgXcQ&list=PLrAXtmErZgOeiKm4sgNOknGvNjby9efdf\",\n  \"startTime\": 5,\n  \"endTime\": 15\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/extract-clip",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "extract-clip"]
+        },
+        "description": "Extract clip from URL with playlist parameters (playlist will be ignored)"
+      },
+      "response": []
+    },
+    {
+      "name": "Extract Clip - Mobile URL",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"youtubeUrl\": \"https://m.youtube.com/watch?v=dQw4w9WgXcQ\",\n  \"startTime\": 0,\n  \"endTime\": 10\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/extract-clip",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "extract-clip"]
+        },
+        "description": "Extract clip using mobile YouTube URL format"
+      },
+      "response": []
+    },
+    {
+      "name": "Extract Clip - Embed URL",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"youtubeUrl\": \"https://www.youtube.com/embed/dQw4w9WgXcQ\",\n  \"startTime\": 10,\n  \"endTime\": 25\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/extract-clip",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "extract-clip"]
+        },
+        "description": "Extract clip using YouTube embed URL format"
+      },
+      "response": []
+    },
+    {
+      "name": "Test - Invalid URL",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"youtubeUrl\": \"https://example.com/video\",\n  \"startTime\": 0,\n  \"endTime\": 10\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/extract-clip",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "extract-clip"]
+        },
+        "description": "Test error handling with invalid YouTube URL"
+      },
+      "response": []
+    },
+    {
+      "name": "Test - Invalid Time Range",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"youtubeUrl\": \"https://www.youtube.com/watch?v=dQw4w9WgXcQ\",\n  \"startTime\": 20,\n  \"endTime\": 10\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/extract-clip",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "extract-clip"]
+        },
+        "description": "Test error handling when startTime is greater than endTime"
+      },
+      "response": []
+    },
+    {
+      "name": "Test - Missing Fields",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"youtubeUrl\": \"https://www.youtube.com/watch?v=dQw4w9WgXcQ\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/extract-clip",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "extract-clip"]
+        },
+        "description": "Test error handling with missing required fields"
+      },
+      "response": []
+    },
+    {
+      "name": "Download Clip (Replace :filename)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/download/clip_dQw4w9WgXcQ_1234567890.mp4",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "download", "clip_dQw4w9WgXcQ_1234567890.mp4"]
+        },
+        "description": "Download a generated clip file. Replace the filename with actual filename from the extract-clip response."
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    }
+  ]
+}
