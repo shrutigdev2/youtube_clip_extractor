@@ -22,10 +22,11 @@ let ffprobePath = null;
 
 async function checkFFmpeg() {
   try {
-    const { stdout } = await execPromise('where ffmpeg');
-    ffmpegPath = stdout.trim().split('\n')[0].replace(/\r/g, '').trim();
-    const { stdout: probeOut } = await execPromise('where ffprobe');
-    ffprobePath = probeOut.trim().split('\n')[0].replace(/\r/g, '').trim();
+    const { stdout } = await execPromise('which ffmpeg');
+    ffmpegPath = stdout.trim();
+
+    const { stdout: probeOut } = await execPromise('which ffprobe');
+    ffprobePath = probeOut.trim();
 
     ffmpeg.setFfmpegPath(ffmpegPath);
     ffmpeg.setFfprobePath(ffprobePath);
@@ -34,10 +35,11 @@ async function checkFFmpeg() {
     console.log('FFprobe found at:', ffprobePath);
     return true;
   } catch (error) {
-    console.error('FFmpeg not found in PATH');
+    console.error('FFmpeg not found in PATH', error);
     return false;
   }
 }
+
 
 async function initializeYtDlp() {
   if (isInitialized) return;
